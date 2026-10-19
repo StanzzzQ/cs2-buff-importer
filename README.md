@@ -50,7 +50,7 @@ sw_bbtest                 # 插件版本 / WeaponSkins API / Cookie / 代理
 sw_bbtest u86YQwb6        # 真跑一次解析（不会改任何人的皮肤）
 ```
 
-### 4. 可选：代理、冷却
+### 4. 可选：代理、冷却、立即生效
 
 `config.json`（不存在也能跑，用默认值）：
 
@@ -58,12 +58,14 @@ sw_bbtest u86YQwb6        # 真跑一次解析（不会改任何人的皮肤）
 {
   "Cookie": "",
   "Proxy": "http://127.0.0.1:7890",
-  "CooldownSeconds": 3
+  "CooldownSeconds": 3,
+  "RefreshAfterApply": true
 }
 ```
 
 - `Proxy`：服务器出口 IP 被 BUFF 风控（报 403）时填
 - `CooldownSeconds`：每玩家冷却秒数
+- `RefreshAfterApply`：换完立刻重建手上的武器（默认 `true`）。关掉的话，玩家要重新购买/捡枪才会看到新皮肤
 
 `cookie.txt` 的优先级高于 `config.json` 里的 `Cookie`。
 
@@ -72,6 +74,7 @@ sw_bbtest u86YQwb6        # 真跑一次解析（不会改任何人的皮肤）
 ## 特性
 
 - **一条命令换整套外观**：涂装、模板、磨损、印花、挂件、改名、StatTrak
+- **换完立即生效**：自动让 WeaponSkins 重建手上的武器，不用重新购买
 - **不解析网页**：直接读游戏自己的资产数据（protobuf），比抓 HTML 稳
 - **印花按游戏原生参数写入**：slot / wear / scale / rotation / offset x,y
 - **Cookie 失效自动求助**：在聊天里让玩家现场贴一条新 Cookie，并当场验证
@@ -144,7 +147,8 @@ sw_bbtest u86YQwb6        # 真跑一次解析（不会改任何人的皮肤）
   "UserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) ... Chrome/126.0.0.0 Safari/537.36",
   "Cookie": "session=...",
   "Proxy": "",
-  "CooldownSeconds": 3
+  "CooldownSeconds": 3,
+  "RefreshAfterApply": true
 }
 ```
 
@@ -153,6 +157,7 @@ sw_bbtest u86YQwb6        # 真跑一次解析（不会改任何人的皮肤）
 | `Cookie` | 初始 Cookie；存在 `cookie.txt` 时以 `cookie.txt` 为准 |
 | `Proxy` | 例如 `http://127.0.0.1:7890`；服务器出口 IP 被风控时使用 |
 | `CooldownSeconds` | 每玩家冷却秒数 |
+| `RefreshAfterApply` | `true` 时换完立刻重建手上武器；`false` 则需要重新购买才看到 |
 | `UserAgent` | BUFF 对异常 UA 敏感，建议保持浏览器串 |
 
 运行期 `!buffcookie` 写入的是 `cookie.txt`，重启后仍生效，不会改动 `config.json`。

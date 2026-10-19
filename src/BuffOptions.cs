@@ -21,6 +21,12 @@ internal sealed class BuffOptions
     /// <summary>每个玩家的冷却秒数。</summary>
     public int CooldownSeconds { get; set; } = 3;
 
+    /// <summary>
+    /// 应用后立刻刷新玩家手上的武器（否则要重新购买/捡枪才会变外观）。
+    /// 通过反射调用 WeaponSkins 内部的 RefreshPlayer；失败会自动跳过。
+    /// </summary>
+    public bool RefreshAfterApply { get; set; } = true;
+
     public static BuffOptions Load(string pluginDirectory)
     {
         try

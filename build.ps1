@@ -77,14 +77,12 @@ if (-not (Test-Path -LiteralPath $publishDir)) {
     throw "没有找到输出目录：$publishDir"
 }
 
-# 仓库里没有 config.json（它含 Cookie 且被 gitignore），发布时用模板补一份
+# 发布产物里的 config.json 一律用模板覆盖：避免把开发机上的真 Cookie 打进 zip
 $configPath = Join-Path $publishDir "config.json"
-if (-not (Test-Path -LiteralPath $configPath)) {
-    $example = Join-Path $root "config.example.json"
-    if (Test-Path -LiteralPath $example) {
-        Copy-Item -LiteralPath $example -Destination $configPath
-        Write-Host "已用 config.example.json 生成默认 config.json（Cookie 为空）" -ForegroundColor Yellow
-    }
+$example = Join-Path $root "config.example.json"
+if (Test-Path -LiteralPath $example) {
+    Copy-Item -LiteralPath $example -Destination $configPath -Force
+    Write-Host "发布目录的 config.json 已重置为模板（Cookie 为空）" -ForegroundColor Yellow
 }
 
 # 注意：如果本地 config.json 里有 Cookie，它会被打进这个 zip，别公开分发

@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Reflection;
 using SwiftlyS2.Shared;
 using SwiftlyS2.Shared.Commands;
 using SwiftlyS2.Shared.Players;
@@ -10,17 +11,21 @@ namespace BuffBridge;
 
 [PluginMetadata(
     Id = "BuffBridge",
-    Version = "0.4.0",
+    Version = "0.4.1",
     Name = "BuffBridge",
-    Author = "you",
+    Author = "StanzzzQ",
     Description = "!buff <BUFF 分享链接>：把武器/刀/手套换成链接里的皮肤（含印花、挂件）")]
 public sealed class BuffBridgePlugin : BasePlugin
 {
+    private static readonly string PluginVersion =
+        typeof(BuffBridgePlugin).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
+
     private readonly Dictionary<ulong, DateTime> _lastUse = new();
 
     private IWeaponSkinAPI? _skins;
     private BuffClient? _client;
     private TimeSpan _cooldown = TimeSpan.FromSeconds(3);
+    private bool _refreshAfterApply = true;
 
     private string _cookieFile = string.Empty;
     private string _proxyInfo = string.Empty;
@@ -49,6 +54,7 @@ public sealed class BuffBridgePlugin : BasePlugin
         _cooldown = TimeSpan.FromSeconds(Math.Clamp(options.CooldownSeconds, 0, 3600));
         _cookieFile = Path.Combine(pluginDirectory, "cookie.txt");
         _proxyInfo = options.Proxy ?? string.Empty;
+        _refreshAfterApply = options.RefreshAfterApply;
 
         _client = new BuffClient(options);
 
@@ -246,7 +252,7 @@ public sealed class BuffBridgePlugin : BasePlugin
 
         if (argument.Length == 0)
         {
-            context.Reply("» BuffBridge 0.4.0");
+            context.Reply("» BuffBridge " + PluginVersion);
             context.Reply("» WeaponSkins API：" + (_skins is null ? "未注入（WeaponSkins 没加载，或版本不匹配）" : "已注入"));
             context.Reply("» Cookie：" + (client.HasCookie ? "已配置" : "未配置"));
             context.Reply("» 代理：" + (_proxyInfo.Length == 0 ? "未设置" : _proxyInfo));
@@ -357,8 +363,9 @@ public sealed class BuffBridgePlugin : BasePlugin
         var steamId = player.Controller.SteamID;
         var team = player.Controller.Team;
         var definitionIndex = item.DefinitionIndex;
+        var kind = Classify(definitionIndex);
 
-        switch (Classify(definitionIndex))
+        switch (kind)
         {
             case SkinKind.Knife:
                 api.UpdateKnifeSkin(steamId, team, skin =>
@@ -411,9 +418,54 @@ public sealed class BuffBridgePlugin : BasePlugin
                 break;
         }
 
+        // 数据改了，但手上那把枪的实体不会自动重建——不复刷就得重新购买才看得到
+        if (_refreshAfterApply)
+        {
+            TryRefreshPlayer(api, steamId, kind == SkinKind.Glove);
+        }
+
         context.Reply($"» 已装备 {Describe(api, item)}");
         context.Reply(
             $"» 模板 {item.PaintSeed} | 磨损 {item.PaintWear.ToString("F10", CultureInfo.InvariantCulture)} | 印花 {item.Stickers.Count} 张");
+    }
+
+    /// <summary>
+    /// WeaponSkins 只导出了 IWeaponSkinAPI，但内部 IInventoryUpdateService.RefreshPlayer
+    /// 才是「重建手上武器」的入口。用反射取它，取不到就静默跳过（不影响换肤，只是要重新购买才看到）。
+    /// </summary>
+    private static void TryRefreshPlayer(IWeaponSkinAPI api, ulong steamId, bool resetGlove)
+    {
+        try
+        {
+            var property = api.GetType().GetProperty(
+                "InventoryUpdateService",
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            var service = property?.GetValue(api);
+
+            // 属性可能被改成字段/自动属性，兜底找一下 backing field
+            service ??= api.GetType()
+                .GetField("<InventoryUpdateService>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic)
+                ?.GetValue(api);
+
+            if (service is null)
+            {
+                return;
+            }
+
+            var method = service.GetType().GetMethod(
+                "RefreshPlayer",
+                BindingFlags.Instance | BindingFlags.Public,
+                null,
+                [typeof(ulong), typeof(bool)],
+                null);
+
+            method?.Invoke(service, [steamId, resetGlove]);
+        }
+        catch
+        {
+            // 反射失败只影响「立即生效」，换肤数据已经写进去了
+        }
     }
 
     private static void ApplyStickers(IWeaponSkinAPI api, WeaponSkinData skin, BuffItem item)
