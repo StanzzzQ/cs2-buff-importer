@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>BuffBridge</AssemblyName>
+    <RootNamespace>BuffBridge</RootNamespace>
+    <OutputPath>$(MSBuildThisFileDirectory)build/</OutputPath>
+    <PublishDir>$(OutputPath)publish/BuffBridge/</PublishDir>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <!-- 不往 NuGet 发请求，全部走 lib/ 里的本地 DLL -->
+    <RestoreSources></RestoreSources>
+    <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+  </PropertyGroup>
+
+  <!-- 发布版不要 PDB：它会带上编译机的绝对路径（用户名等） -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DebugType>none</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+    <Deterministic>true</Deterministic>
+    <PathMap>$(MSBuildThisFileDirectory)=/src/</PathMap>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 两个运行时程序集直接引用，不走 NuGet：服务器上跑的是哪份，就引用哪份 -->
+    <Reference Include="SwiftlyS2.CS2">
+      <HintPath>$(MSBuildThisFileDirectory)lib/SwiftlyS2.CS2.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="WeaponSkins.Shared">
+      <HintPath>$(MSBuildThisFileDirectory)lib/WeaponSkins.Shared.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="config.json" CopyToOutputDirectory="PreserveNewest" Condition="Exists('config.json')" />
+  </ItemGroup>
+
+</Project>

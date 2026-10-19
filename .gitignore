@@ -1,0 +1,31 @@
+# 构建产物
+bin/
+obj/
+build/
+*.zip
+
+# IDE
+*.user
+.vs/
+.idea/
+
+# 本地 SDK 与 NuGet 缓存（体积大，且含本机路径）
+.dotnet/
+.dotnet-home/
+.nuget/
+.appdata/
+.localappdata/
+
+# 依赖 DLL 由使用者自备，不入库
+lib/*.dll
+
+# 账号凭据，绝对不能提交
+config.json
+cookie.txt
+
+# GUI 本地状态（可能含 Cookie）
+tools/gui_config.json
+
+# Python 缓存
+__pycache__/
+*.pyc
