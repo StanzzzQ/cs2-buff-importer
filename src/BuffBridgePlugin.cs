@@ -20,6 +20,24 @@ public sealed class BuffBridgePlugin : BasePlugin
     private static readonly string PluginVersion =
         typeof(BuffBridgePlugin).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
 
+    /// <summary>DLL 的写入时间，用来判断服务器上是不是真的换了新文件。</summary>
+    private static readonly string BuildStamp = GetBuildStamp();
+
+    private static string GetBuildStamp()
+    {
+        try
+        {
+            var path = typeof(BuffBridgePlugin).Assembly.Location;
+            return string.IsNullOrEmpty(path) || !File.Exists(path)
+                ? "未知"
+                : File.GetLastWriteTime(path).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            return "未知";
+        }
+    }
+
     private readonly Dictionary<ulong, DateTime> _lastUse = new();
 
     private IWeaponSkinAPI? _skins;
@@ -253,6 +271,7 @@ public sealed class BuffBridgePlugin : BasePlugin
         if (argument.Length == 0)
         {
             context.Reply("» BuffBridge " + PluginVersion);
+            context.Reply("» 构建时间：" + BuildStamp);
             context.Reply("» WeaponSkins API：" + (_skins is null ? "未注入（WeaponSkins 没加载，或版本不匹配）" : "已注入"));
             context.Reply("» Cookie：" + (client.HasCookie ? "已配置" : "未配置"));
             context.Reply("» 代理：" + (_proxyInfo.Length == 0 ? "未设置" : _proxyInfo));
