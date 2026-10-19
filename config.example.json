@@ -3,5 +3,6 @@
   "Cookie": "",
   "Proxy": "",
   "CooldownSeconds": 3,
-  "RefreshAfterApply": true
+  "RefreshAfterApply": true,
+  "PersistSkins": true
 }

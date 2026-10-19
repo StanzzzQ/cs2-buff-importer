@@ -11,7 +11,7 @@ namespace BuffBridge;
 
 [PluginMetadata(
     Id = "BuffBridge",
-    Version = "0.4.1",
+    Version = "0.4.2",
     Name = "BuffBridge",
     Author = "StanzzzQ",
     Description = "!buff <BUFF 分享链接>：把武器/刀/手套换成链接里的皮肤（含印花、挂件）")]
@@ -44,6 +44,7 @@ public sealed class BuffBridgePlugin : BasePlugin
     private BuffClient? _client;
     private TimeSpan _cooldown = TimeSpan.FromSeconds(3);
     private bool _refreshAfterApply = true;
+    private bool _persistSkins = true;
 
     private string _cookieFile = string.Empty;
     private string _proxyInfo = string.Empty;
@@ -73,6 +74,7 @@ public sealed class BuffBridgePlugin : BasePlugin
         _cookieFile = Path.Combine(pluginDirectory, "cookie.txt");
         _proxyInfo = options.Proxy ?? string.Empty;
         _refreshAfterApply = options.RefreshAfterApply;
+        _persistSkins = options.PersistSkins;
 
         _client = new BuffClient(options);
 
@@ -402,7 +404,7 @@ public sealed class BuffBridgePlugin : BasePlugin
                     {
                         skin.Nametag = item.NameTag;
                     }
-                });
+                }, _persistSkins);
                 break;
 
             case SkinKind.Glove:
@@ -412,7 +414,7 @@ public sealed class BuffBridgePlugin : BasePlugin
                     skin.Paintkit = item.PaintIndex;
                     skin.PaintkitSeed = item.PaintSeed;
                     skin.PaintkitWear = item.PaintWear;
-                });
+                }, _persistSkins);
                 break;
 
             default:
@@ -433,7 +435,7 @@ public sealed class BuffBridgePlugin : BasePlugin
 
                     ApplyStickers(api, skin, item);
                     ApplyKeychain(api, skin, item);
-                });
+                }, _persistSkins);
                 break;
         }
 

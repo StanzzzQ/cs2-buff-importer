@@ -27,6 +27,12 @@ internal sealed class BuffOptions
     /// </summary>
     public bool RefreshAfterApply { get; set; } = true;
 
+    /// <summary>
+    /// 把换肤结果写进 WeaponSkins 的数据库（重启后仍然保留）。
+    /// 设为 false 则只在本次运行内有效。
+    /// </summary>
+    public bool PersistSkins { get; set; } = true;
+
     public static BuffOptions Load(string pluginDirectory)
     {
         try

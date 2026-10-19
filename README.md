@@ -59,13 +59,18 @@ sw_bbtest u86YQwb6        # 真跑一次解析（不会改任何人的皮肤）
   "Cookie": "",
   "Proxy": "http://127.0.0.1:7890",
   "CooldownSeconds": 3,
-  "RefreshAfterApply": true
+  "RefreshAfterApply": true,
+  "PersistSkins": true
 }
 ```
 
 - `Proxy`：服务器出口 IP 被 BUFF 风控（报 403）时填
 - `CooldownSeconds`：每玩家冷却秒数
 - `RefreshAfterApply`：换完立刻重建手上的武器（默认 `true`）。关掉的话，玩家要重新购买/捡枪才会看到新皮肤
+- `PersistSkins`：把结果写进 WeaponSkins 的数据库（默认 `true`）。`false` 时重启就恢复原样
+
+> 想让皮肤在**玩家重新进服后自动恢复**，还需要 WeaponSkins 的 `config.toml` 里
+> `SyncFromDatabaseWhenPlayerJoin = true`（它默认是 `false`）。否则玩家可以手动发 `!wp` 重新加载。
 
 `cookie.txt` 的优先级高于 `config.json` 里的 `Cookie`。
 
@@ -148,7 +153,8 @@ sw_bbtest u86YQwb6        # 真跑一次解析（不会改任何人的皮肤）
   "Cookie": "session=...",
   "Proxy": "",
   "CooldownSeconds": 3,
-  "RefreshAfterApply": true
+  "RefreshAfterApply": true,
+  "PersistSkins": true
 }
 ```
 
@@ -158,6 +164,7 @@ sw_bbtest u86YQwb6        # 真跑一次解析（不会改任何人的皮肤）
 | `Proxy` | 例如 `http://127.0.0.1:7890`；服务器出口 IP 被风控时使用 |
 | `CooldownSeconds` | 每玩家冷却秒数 |
 | `RefreshAfterApply` | `true` 时换完立刻重建手上武器；`false` 则需要重新购买才看到 |
+| `PersistSkins` | `true` 时写入 WeaponSkins 数据库，重启后仍在；`false` 只在本次运行内有效 |
 | `UserAgent` | BUFF 对异常 UA 敏感，建议保持浏览器串 |
 
 运行期 `!buffcookie` 写入的是 `cookie.txt`，重启后仍生效，不会改动 `config.json`。
